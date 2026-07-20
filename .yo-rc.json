@@ -1,0 +1,18 @@
+{
+  "@microsoft/generator-sharepoint": {
+    "plusBeta": false,
+    "isCreatingSolution": true,
+    "nodeVersion": "22.22.2",
+    "sdksVersions": {},
+    "version": "1.21.1",
+    "libraryName": "bpcl-web-stories",
+    "libraryId": "c0e606d6-5dbc-4dd3-9d84-06871aab86bb",
+    "environment": "spo",
+    "packageManager": "npm",
+    "solutionName": "bpcl-web-stories",
+    "solutionShortDescription": "bpcl-web-stories description",
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "componentType": "webpart"
+  }
+}

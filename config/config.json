@@ -1,0 +1,19 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "bpcl-web-stories-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/bpclWebStories/BpclWebStoriesWebPart.js",
+          "manifest": "./src/webparts/bpclWebStories/BpclWebStoriesWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "BpclWebStoriesWebPartStrings": "lib/webparts/bpclWebStories/loc/{locale}.js",
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "bpcl-web-stories-client-side-solution",
+    "id": "c0e606d6-5dbc-4dd3-9d84-06871aab86bb",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "skipFeatureDeployment": true,
+    "isDomainIsolated": false,
+    "developer": {
+      "name": "",
+      "websiteUrl": "",
+      "privacyUrl": "",
+      "termsOfUseUrl": "",
+      "mpnId": "Undefined-1.21.1"
+    },
+    "metadata": {
+      "shortDescription": {
+        "default": "bpcl-web-stories description"
+      },
+      "longDescription": {
+        "default": "bpcl-web-stories description"
+      },
+      "screenshotPaths": [],
+      "videoUrl": "",
+      "categories": []
+    },
+    "features": [
+      {
+        "title": "bpcl-web-stories Feature",
+        "description": "The feature that activates elements of the bpcl-web-stories solution.",
+        "id": "195b3094-c9a9-48bf-8ad8-fc488581b7f9",
+        "version": "1.0.0.0"
+      }
+    ]
+  },
+  "paths": {
+    "zippedPackage": "solution/bpcl-web-stories.sppkg"
+  }
+}
