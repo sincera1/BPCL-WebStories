@@ -7,7 +7,7 @@ import { SPFx } from "@pnp/sp/presets/all";
 import "@pnp/sp/webs";
 import "@pnp/sp/lists";
 import "@pnp/sp/items";
-import { Button, Form, Modal, Pagination} from "react-bootstrap";
+import { Alert, Button, Form, Modal, Pagination } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
 import FlipBookViewer from "./FlipBookViewer";
@@ -20,31 +20,45 @@ interface IProps {
   context: any;
   libraryName: string;
 }
-
+interface IWebStory {
+  Id: number;
+  FileLeafRef: string;
+  FileRef: string;
+  Created: string;
+  AuthorId: number;
+  Description0?: string;
+  SharedWith?: {
+    Id: number;
+  }[];
+}
+// interface ISelectedUser {
+//   id?: string;
+//   loginName?: string;
+//   secondaryText?: string;
+//   text?: string;
+// }
 const BpclWebStories: React.FC<IProps> = ({ context, libraryName }) => {
 
   const [showShareModal, setShowShareModal] = React.useState(false);
-  const [docs, setDocs] = React.useState<any[]>([]);
+  const [docs, setDocs] = React.useState<IWebStory[]>([]);
   const [selectedFile, setSelectedFile] = React.useState<string | null>(null);
 
   const [selectedItemId, setSelectedItemId] = React.useState<number>();
-  const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
+   const [selectedUsers, setSelectedUsers] = React.useState<any[]>([]);
+ // const [selectedUsers, setSelectedUsers] = React.useState<ISelectedUser[]>([]);
   const [searchText, setSearchText] = React.useState("");
 
   const [currentPage, setCurrentPage] = React.useState(1);
-const [pageSize, setPageSize] = React.useState(10);
+  const [pageSize, setPageSize] = React.useState(10);
+
+  const [successMessage, setSuccessMessage] = React.useState("");
 
   // ✅ Create SP instance (PnP v3)
   const sp: SPFI = React.useMemo(() => {
     return spfi().using(SPFx(context));
   }, [context]);
 
-  React.useEffect(() => {
-    fetchDocuments();
-  }, []);
-
-
-  const fetchDocuments = async () => {
+    const fetchDocuments = async (): Promise<void> => {
     try {
 
       const currentUserId = context.pageContext.legacyPageContext.userId;
@@ -69,6 +83,14 @@ const [pageSize, setPageSize] = React.useState(10);
       console.error("Error fetching documents:", error);
     }
   };
+
+React.useEffect(() => {
+  fetchDocuments().catch((error) => {
+    console.error("Error fetching documents:", error);
+  });
+}, []);
+
+
 
 const filteredDocs = docs.filter((doc) =>
   doc.FileLeafRef?.toLowerCase().includes(searchText.toLowerCase())
@@ -96,7 +118,7 @@ const getDigest = async (): Promise<string> => {
   return data.FormDigestValue;
 };
 
-const handleShare = async () => {
+const handleShare = async (): Promise<void> => {
   try {
 
     if (!selectedItemId) {
@@ -135,7 +157,7 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
       .expand("SharedWith")();
 
     const existingIds: number[] =
-      item.SharedWith?.map((u: any) => u.Id) || [];
+      item.SharedWith?.map((u: { Id: number }) => u.Id) || [];
 
     console.log("Existing IDs:", existingIds);
 
@@ -162,15 +184,6 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
       }
     };
 
-    // const payload = {
-    //   SharedWithId: {
-    //     results: allUserIds
-    //   },
-    //   SendMailToUserId: {
-    //     results: userIds
-    //   }
-    // };
-
     const response = await fetch(
       `${context.pageContext.web.absoluteUrl}/_api/web/lists/getbytitle('Corp_DL_WebStories')/items(${selectedItemId})`,
       {
@@ -193,7 +206,11 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
       return;
     }
 
-    alert("Document shared successfully.");
+   // alert("Document shared successfully.");
+    setSuccessMessage("Document shared successfully.");
+    setTimeout(() => {
+      setSuccessMessage("");
+    }, 3000);
 
     setSelectedUsers([]);
     setShowShareModal(false);
@@ -206,6 +223,15 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
 
   return (
     <div className={styles.commonSectionstyle}>
+         {successMessage && (
+                      <Alert
+                        variant="success"
+                        dismissible
+                        onClose={() => setSuccessMessage("")}
+                      >
+                        {successMessage}
+                      </Alert>
+                    )}
       <div className={styles.pageContainer}>
         {/* Banner */}
         <div className={styles.banner}>
@@ -283,11 +309,11 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
                   setShowShareModal(true);
                 }}
               >
-                <i className="bi bi-share-fill"></i>
+                <i className="bi bi-share-fill"/>
               </button>
                 </div>
-
-                {/* Card Content */}
+                 
+                                    {/* Card Content */}
                 <div className={styles.content}>
                   <span className={styles.badge}>Topic</span>
 
@@ -307,7 +333,7 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
 
                 <p
                   className={`${styles.description} mb-0`}
-                  title={doc.Description || ""}
+                  title={doc.Description0 || ""}
                 >
                   {doc.Description0 || "No description available"}
                 </p>
