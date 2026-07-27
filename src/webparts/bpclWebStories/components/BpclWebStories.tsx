@@ -315,7 +315,7 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
                  
                                     {/* Card Content */}
                 <div className={styles.content}>
-                  <span className={styles.badge}>Topic</span>
+                 
 
                   <h5 className={styles.title} title={doc.FileLeafRef}>
                     {doc.FileLeafRef}
