@@ -164,6 +164,8 @@ React.useEffect(() => {
       {/* <IconButton  iconProps={{ iconName: "ChevronLeft" }}  title="Previous" onClick={prevPage} /> */}
        <button onClick={prevPage}>⏮ Prev</button>
 
+       <button onClick={nextPage}>Next ⏭</button>
+
      {/* <div className={styles.pageInfo}>
         {pages.length > 0
           ? `Page ${currentPage} / ${pages.length}`
@@ -193,7 +195,7 @@ React.useEffect(() => {
 </div>
 
       {/* <IconButton iconProps={{ iconName: "ChevronRight" }}  title="Next"  onClick={nextPage}  /> */}
-      <button onClick={nextPage}>Next ⏭</button>
+      {/* <button onClick={nextPage}>Next ⏭</button> */}
 
       <IconButton  iconProps={{ iconName: "ZoomOut" }}  title="Zoom Out"  onClick={zoomOut} />
 

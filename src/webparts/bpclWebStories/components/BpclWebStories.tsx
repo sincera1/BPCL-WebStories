@@ -9,6 +9,7 @@ import "@pnp/sp/lists";
 import "@pnp/sp/items";
 import { Alert, Button, Form, Modal, Pagination } from "react-bootstrap";
 import "bootstrap-icons/font/bootstrap-icons.css";
+import { Row } from "react-bootstrap";
 
 import FlipBookViewer from "./FlipBookViewer";
 import {
@@ -250,7 +251,9 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
           </div>
         </div>
       </div>
-     
+
+
+      <div className="px-4">
       <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-4 mb-4">
         <h4 className={`${styles.pagetitle} mb-3 mb-md-0`}>
           Total Web Stories  {filteredDocs.length}
@@ -276,72 +279,73 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
         </div>
       </div>
       {!selectedFile && (
-        <div className={styles.cardGrid}>
-          {pagedDocs.map((doc, index) => {
-            const thumbnailUrl = `${context.pageContext.web.absoluteUrl}/_layouts/15/getpreview.ashx?path=${doc.FileRef}`;
+        <Row>
+  {pagedDocs.map((doc, index) => {
+    const thumbnailUrl = `${context.pageContext.web.absoluteUrl}/_layouts/15/getpreview.ashx?path=${doc.FileRef}`;
 
-            return (
-              <div
-                key={index}
-                className={styles.card}
-                onClick={() =>
-                  setSelectedFile(`${window.location.origin}${doc.FileRef}`)
-                }
-              >
-                {/* PDF Preview */}
-                <div className={styles.previewContainer}>
-                  <img
-                    src={thumbnailUrl} // First page thumbnail of PDF
-                    alt={doc.FileLeafRef}
-                    className={styles.thumbnail}
-                  />
+    return (
+      <div
+        key={index}
+        className="col-md-2"
+      >
+        <div
+          className={styles.card}
+          onClick={() =>
+            setSelectedFile(`${window.location.origin}${doc.FileRef}`)
+          }
+        >
+          {/* PDF Preview */}
+          <div className={styles.previewContainer}>
+            <img
+              src={thumbnailUrl}
+              alt={doc.FileLeafRef}
+              className={styles.thumbnail}
+            />
 
-                  {/* Share Button */}
-               <button
-                className={styles.shareBtn}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
+            {/* Share Button */}
+            <button
+              className={styles.shareBtn}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
 
-                  console.log("Share Clicked");
+                console.log("Share Clicked");
+                setSelectedItemId(doc.Id);
+                setShowShareModal(true);
+              }}
+            >
+              <i className="bi bi-share-fill" />
+            </button>
+          </div>
 
-                  setSelectedItemId(doc.Id);
-                  setShowShareModal(true);
-                }}
-              >
-                <i className="bi bi-share-fill"/>
-              </button>
-                </div>
-                 
-                                    {/* Card Content */}
-                <div className={styles.content}>
-                 
+          {/* Card Content */}
+          <div className={styles.content}>
+            <h5 className={styles.title} title={doc.FileLeafRef}>
+              {doc.FileLeafRef}
+            </h5>
 
-                  <h5 className={styles.title} title={doc.FileLeafRef}>
-                    {doc.FileLeafRef}
-                  </h5>
+            <div className={styles.date}>
+              {doc.Created
+                ? new Date(doc.Created).toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })
+                : ""}
+            </div>
 
-                  <div className={styles.date}>
-                   {doc.Created
-                      ? new Date(doc.Created).toLocaleDateString("en-GB", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })
-                      : ""}
-                  </div>
-
-                <p
-                  className={`${styles.description} mb-0`}
-                  title={doc.Description0 || ""}
-                >
-                  {doc.Description0 || "No description available"}
-                </p>
-                </div>
-              </div>
-            );
-          })}
+            <p
+              className={`${styles.description} mb-0`}
+              title={doc.Description0 || ""}
+            >
+              {doc.Description0 || "No description available"}
+            </p>
+          </div>
         </div>
+      </div>
+    );
+  })}
+</Row>
       )}
       <div className={`${styles.paginationSection} mt-3`}>
         <div className={styles.leftPagination}>
@@ -412,6 +416,7 @@ console.log("ListItemEntityTypeFullName :",list.ListItemEntityTypeFullName);
     />
 
 </Pagination>
+      </div>
       </div>
       {selectedFile && (
         <FlipBookViewer
