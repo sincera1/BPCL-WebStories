@@ -89,6 +89,8 @@ const BpclWebStories: React.FC<IProps> = ({
   const [successMessage, setSuccessMessage] =
     React.useState("");
 
+    const [isLoading, setIsLoading] = React.useState(true);
+
 
   // Create SP instance
   const sp: SPFI = React.useMemo(() => {
@@ -100,41 +102,71 @@ const BpclWebStories: React.FC<IProps> = ({
   // FETCH DOCUMENTS
   // ============================================================
 
-  const fetchDocuments = async (): Promise<void> => {
+  // const fetchDocuments = async (): Promise<void> => {
 
-    try {
+  //   try {
 
-      const items = await sp.web.lists
-        .getByTitle("Corp_DL_WebStories")
-        .items
-        .select(
-          "Id",
-          "FileLeafRef",
-          "FileRef",
-          "Created",
-          "AuthorId",
-          "Author/Title",
-          "Description0"
-        )
-        .expand("Author")
-        .filter(
-          `FSObjType eq 0 and substringof('.pdf', FileLeafRef)`
-        )();
+  //     const items = await sp.web.lists
+  //       .getByTitle("Corp_DL_WebStories")
+  //       .items
+  //       .select(
+  //         "Id",
+  //         "FileLeafRef",
+  //         "FileRef",
+  //         "Created",
+  //         "AuthorId",
+  //         "Author/Title",
+  //         "Description0"
+  //       )
+  //       .expand("Author")
+  //       .filter(
+  //         `FSObjType eq 0 and substringof('.pdf', FileLeafRef)`
+  //       )();
 
-      setDocs(items);
+  //     setDocs(items);
 
-    } catch (error) {
+  //   } catch (error) {
 
-      console.error(
-        "Error fetching documents:",
-        error
-      );
+  //     console.error(
+  //       "Error fetching documents:",
+  //       error
+  //     );
 
-    }
+  //   }
 
-  };
+  // };
 
+const fetchDocuments = async (): Promise<void> => {
+  setIsLoading(true);
 
+  try {
+    const items = await sp.web.lists
+      .getByTitle("Corp_DL_WebStories")
+      .items
+      .select(
+        "Id",
+        "FileLeafRef",
+        "FileRef",
+        "Created",
+        "AuthorId",
+        "Author/Title",
+        "Description0"
+      )
+      .expand("Author")
+      .filter(
+        `FSObjType eq 0 and substringof('.pdf', FileLeafRef)`
+      )();
+
+    setDocs(items);
+  } catch (error) {
+    console.error(
+      "Error fetching documents:",
+      error
+    );
+  } finally {
+    setIsLoading(false);
+  }
+};
   React.useEffect(() => {
 
     fetchDocuments().catch((error) => {
@@ -446,21 +478,14 @@ const BpclWebStories: React.FC<IProps> = ({
 
 
       setTimeout(() => {
-
         setSuccessMessage("");
-
       }, 3000);
 
-
       setSelectedUsers([]);
-
       setShowShareModal(false);
 
-
     } catch (error) {
-
       console.error(error);
-
       alert(
         "Something went wrong."
       );
@@ -533,7 +558,7 @@ const BpclWebStories: React.FC<IProps> = ({
                 }
               >
 
-                <img
+                <img className={styles.webStoiesImg}
                   src={webStoriesIcon}
                   alt="Web Stories"
                 />
@@ -571,7 +596,7 @@ const BpclWebStories: React.FC<IProps> = ({
               Search + Year
           ================================ */}
 
-          <div className="px-4">
+          <div className="px-4 mb-4">
 
             <div
               className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-4 mb-4"
@@ -682,24 +707,26 @@ const BpclWebStories: React.FC<IProps> = ({
                 Web Story Cards
             ================================ */}
 
-            {pagedDocs.length > 0 ? (
-
-              <Row>
-
+            {isLoading ? (
+              <div className="text-center py-5">
+                <div className="spinner-border" role="status">
+                  <span className="visually-hidden">
+                    Loading...
+                  </span>
+                </div>
+              </div>
+            ) : pagedDocs.length > 0 ? (
+              <Row className="g-4">
                 {pagedDocs.map(
                   (doc, index) => {
-
                     const thumbnailUrl =
                       `${context.pageContext.web.absoluteUrl}/_layouts/15/getpreview.ashx?path=${doc.FileRef}`;
 
-
                     return (
-
                       <div
                         key={index}
                         className="col-md-2"
                       >
-
                         <div
                           className={
                             styles.card
@@ -760,88 +787,80 @@ const BpclWebStories: React.FC<IProps> = ({
 
                           {/* Card Content */}
 
-                          <div
-                            className={
-                              styles.content
-                            }
+                           <div className={styles.content}>
+                          <h5
+                            className={styles.title}
+                            //   title={
+                            //     doc.FileLeafRef?.replace(
+                            //       /\.pdf$/i,
+                            //       ""
+                            //     )
+                            //   }
+                            // >
+ 
+                            //   {doc.FileLeafRef?.replace(
+                            //     /\.pdf$/i,
+                            //     ""
+                            //   )}<p
+                            // className={`${styles.description} mb-0`}
+                            title={doc.Description0 || ""}
                           >
-
-                            <h5
-                              className={
-                                styles.title
-                              }
-                              title={
-                                doc.FileLeafRef?.replace(
-                                  /\.pdf$/i,
-                                  ""
+                            {doc.Description0 || "No description available"}
+ 
+                            {/* </p> */}
+                          </h5>
+ 
+                          {/* Author */}
+ 
+                          <div className={styles.author}>
+                            <i className="bi bi-person-fill me-1" />
+ 
+                            {doc.Author?.Title || "Unknown"}
+                          </div>
+ 
+                          {/* Date */}
+ 
+                          <div className={styles.date}>
+                            {doc.Created
+                              ? new Date(doc.Created).toLocaleDateString(
+                                  "en-GB",
+                                  {
+                                    day: "2-digit",
+                                    month: "short",
+                                    year: "numeric",
+                                  },
                                 )
-                              }
-                            >
-
-                              {doc.FileLeafRef?.replace(
-                                /\.pdf$/i,
-                                ""
-                              )}
-
-                            </h5>
-
-
-                            {/* Author */}
-
-                            <div
-                              className={
-                                styles.date
-                              }
-                            >
-
-                              <i className="bi bi-person-fill me-1" />
-
-                              {doc.Author?.Title ||
-                                "Unknown"}
-
-                            </div>
-
-
-                            {/* Date */}
-
-                            <div
-                              className={
-                                styles.date
-                              }
-                            >
-
-                              {doc.Created
-                                ? new Date(
-                                    doc.Created
-                                  ).toLocaleDateString(
-                                    "en-GB",
-                                    {
-                                      day: "2-digit",
-                                      month: "short",
-                                      year: "numeric"
-                                    }
-                                  )
-                                : ""}
-
-                            </div>
-
-
-                            {/* Description */}
-
-                            <p
+                              : ""}
+                          </div>
+ 
+                          {/* Description */}
+ 
+                          {/* <p
                               className={`${styles.description} mb-0`}
                               title={
                                 doc.Description0 ||
                                 ""
                               }
                             >
-
+ 
                               {doc.Description0 ||
                                 "No description available"}
-
-                            </p>
-
-                          </div>
+ 
+                            </p> */}
+                          {/* checking */}
+                          {/* <div
+                            className={styles.description}
+                            title={doc.FileLeafRef?.replace(/\.pdf$/i, "")}
+                          >
+                            {doc.FileLeafRef?.replace(/\.pdf$/i, "")}
+ 
+                            <span
+                              className={`${styles.description} mb-0`}
+                            ></span>
+                          </div> */}
+ 
+                          {/* checking */}
+                        </div>
 
                         </div>
 

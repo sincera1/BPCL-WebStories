@@ -64,7 +64,7 @@
   border-radius: 15px;
   overflow: hidden;
 
-  background: rgba(255, 255, 255, 0.12);
+  background: #fff;
   backdrop-filter: blur(10px);
 
   box-shadow: 0 8px 25px rgba(0,0,0,0.3);
@@ -89,11 +89,17 @@
   font-size: 15px;
   font-weight: 600;
   color: #013396!important;
-  text-align: center;
-   white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+  // text-align: center;
+  // white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   // text-shadow: 0 2px 5px rgba(0,0,0,0.4);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+ 
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  line-height: 22px;
 }
 
 /* ===== VIEWER ===== */
@@ -428,12 +434,13 @@
 }
 .previewContainer {
   position: relative;
-  height: 250px;
+  height: 265px;
   background: #f5f7fa;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+
 }
 .shareBtn {
   position: absolute;
@@ -473,7 +480,7 @@
 .date {
   font-size: 13px;
   color: #777;
-  margin-bottom: 10px;
+  // margin-bottom: 10px;
 }
 
 .description {
@@ -569,5 +576,11 @@
 .author {
   font-size: 12px;
   color: #666;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
+.webStoiesImg {
+  width: 80px !important;
+  height: 72px !important;
+  border-radius: 10px !important;
+}
+ 
