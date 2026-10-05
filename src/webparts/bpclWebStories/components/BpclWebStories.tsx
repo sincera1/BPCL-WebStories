@@ -24,7 +24,7 @@ import {
   PrincipalType
 } from "@pnp/spfx-controls-react/lib/PeoplePicker";
 import webStoriesIcon from "../assets/FlipBookIcon.png";
-
+import { MSGraphClientV3 } from "@microsoft/sp-http";
 
 interface IProps {
   context: any;
@@ -38,12 +38,14 @@ interface IWebStory {
   FileRef: string;
   Created: string;
   AuthorId: number;
-
+EncodedAbsUrl: string;
   Author?: {
     Title: string;
   };
 
   Description0?: string;
+
+    ThumbnailUrl?: string;
 
   SharedWith?: {
     Id: number;
@@ -52,8 +54,8 @@ interface IWebStory {
 
 
 const BpclWebStories: React.FC<IProps> = ({
-  context,
-  libraryName
+  context
+  
 }) => {
 
   const [showShareModal, setShowShareModal] =
@@ -102,51 +104,98 @@ const BpclWebStories: React.FC<IProps> = ({
   // FETCH DOCUMENTS
   // ============================================================
 
-  // const fetchDocuments = async (): Promise<void> => {
 
-  //   try {
+const libraryName = "Corp_DL_WebStories";
 
-  //     const items = await sp.web.lists
-  //       .getByTitle("Corp_DL_WebStories")
-  //       .items
-  //       .select(
-  //         "Id",
-  //         "FileLeafRef",
-  //         "FileRef",
-  //         "Created",
-  //         "AuthorId",
-  //         "Author/Title",
-  //         "Description0"
-  //       )
-  //       .expand("Author")
-  //       .filter(
-  //         `FSObjType eq 0 and substringof('.pdf', FileLeafRef)`
-  //       )();
+const getThumbnailUrl = async (
+  itemId: number,
+  listId: string
+): Promise<string> => {
+  try {
+    const graphClient: MSGraphClientV3 =
+      await context.msGraphClientFactory.getClient("3");
 
-  //     setDocs(items);
+    const siteId =
+      context.pageContext.site.id.toString();
 
-  //   } catch (error) {
+    const driveItem =
+      await graphClient
+        .api(
+          `/sites/${siteId}/lists/${listId}/items/${itemId}/driveItem`
+        )
+        .select("id,parentReference,name")
+        .get();
 
-  //     console.error(
-  //       "Error fetching documents:",
-  //       error
-  //     );
+    if (
+      !driveItem ||
+      !driveItem.id ||
+      !driveItem.parentReference?.driveId
+    ) {
+      return "";
+    }
 
-  //   }
+    const driveId =
+      driveItem.parentReference.driveId;
 
-  // };
+    const driveItemId =
+      driveItem.id;
+
+    const thumbnailResponse =
+      await graphClient
+        .api(
+          `/drives/${driveId}/items/${driveItemId}/thumbnails`
+        )
+        .select("medium,large")
+        .get();
+
+    if (thumbnailResponse?.value?.length) {
+      const thumbnail =
+        thumbnailResponse.value[0];
+
+      if (thumbnail.large?.url) {
+        return thumbnail.large.url;
+      }
+
+      if (thumbnail.medium?.url) {
+        return thumbnail.medium.url;
+      }
+    }
+
+    return "";
+  } catch (error) {
+    console.error(
+      "Thumbnail error for item:",
+      itemId,
+      error
+    );
+
+    return "";
+  }
+};
 
 const fetchDocuments = async (): Promise<void> => {
   setIsLoading(true);
 
   try {
+    // Get List GUID dynamically using library name
+    const list = await sp.web.lists
+      .getByTitle(libraryName)
+      .select("Id")();
+
+    const listId = list.Id;
+
+    console.log("Library Name:", libraryName);
+    console.log("Dynamic List ID:", listId);
+
+    // Get PDF documents
     const items = await sp.web.lists
-      .getByTitle("Corp_DL_WebStories")
+      .getByTitle(libraryName)
       .items
       .select(
         "Id",
         "FileLeafRef",
         "FileRef",
+        "EncodedAbsUrl",
         "Created",
         "AuthorId",
         "Author/Title",
@@ -155,9 +204,39 @@ const fetchDocuments = async (): Promise<void> => {
       .expand("Author")
       .filter(
         `FSObjType eq 0 and substringof('.pdf', FileLeafRef)`
-      )();
+      )
+      .top(5000)();
 
-    setDocs(items);
+    console.log("PDF ITEMS:", items);
+
+    // Get thumbnails
+    const documentsWithThumbnails =
+      await Promise.all(
+        items.map(
+          async (item: IWebStory) => {
+            const thumbnailUrl =
+              await getThumbnailUrl(
+                item.Id,
+                listId
+              );
+
+            return {
+              ...item,
+              ThumbnailUrl: thumbnailUrl
+            };
+          }
+        )
+      );
+
+    console.log(
+      "PDF ITEMS WITH THUMBNAILS:",
+      documentsWithThumbnails
+    );
+
+    setDocs(
+      documentsWithThumbnails
+    );
+
   } catch (error) {
     console.error(
       "Error fetching documents:",
@@ -167,6 +246,8 @@ const fetchDocuments = async (): Promise<void> => {
     setIsLoading(false);
   }
 };
+
+
   React.useEffect(() => {
 
     fetchDocuments().catch((error) => {
@@ -220,6 +301,8 @@ const fetchDocuments = async (): Promise<void> => {
     const searchMatch =
       fileName.includes(search) ||
       description.includes(search);
+
+     // const EncodedAbsUrl = doc.EncodedAbsUrl?.toLowerCase() || "";
 
 
     return yearMatch && searchMatch;
@@ -719,10 +802,10 @@ const fetchDocuments = async (): Promise<void> => {
               <Row className="g-4">
                 {pagedDocs.map(
                   (doc, index) => {
-                    const thumbnailUrl =
-                      `${context.pageContext.web.absoluteUrl}/_layouts/15/getpreview.ashx?path=${doc.FileRef}`;
+                    // const thumbnailUrl =
+                    //   `${context.pageContext.web.absoluteUrl}/_layouts/15/getpreview.ashx?path=${doc.FileRef}`;
 
-                    return (
+return (
                       <div
                         key={index}
                         className="col-md-2"
@@ -746,13 +829,23 @@ const fetchDocuments = async (): Promise<void> => {
                             }
                           >
 
-                            <img
-                              src={thumbnailUrl}
-                              alt={doc.FileLeafRef}
-                              className={
-                                styles.thumbnail
-                              }
-                            />
+                          <img
+                            src={
+                              doc.ThumbnailUrl ||
+                              webStoriesIcon
+                            }
+                            alt={doc.FileLeafRef}
+                            className={styles.thumbnail}
+                            onError={(e) => {
+                              console.log(
+                                "Thumbnail failed:",
+                                doc.FileLeafRef
+                              );
+
+                              e.currentTarget.src =
+                                webStoriesIcon;
+                            }}
+                          />
 
 
                             {/* Share Button */}
@@ -788,6 +881,7 @@ const fetchDocuments = async (): Promise<void> => {
                           {/* Card Content */}
 
                            <div className={styles.content}>
+                           
                           <h5
                             className={styles.title}
                             //   title={
