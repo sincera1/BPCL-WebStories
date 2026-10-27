@@ -93,6 +93,8 @@ const BpclWebStories: React.FC<IProps> = ({
 
     const [isLoading, setIsLoading] = React.useState(true);
 
+    const [isLinkCopied, setIsLinkCopied] = React.useState(false);
+
 
   // Create SP instance
   const sp: SPFI = React.useMemo(() => {
@@ -576,8 +578,26 @@ const fetchDocuments = async (): Promise<void> => {
     }
 
   };
+// copy share link
 
+// Copy share link URL dynamically
+const shareUrl = selectedItemId
+  ? `${context.pageContext.web.absoluteUrl}/SitePages/ViewWebStories.aspx?documentdetails=${selectedItemId}`
+  : "";
 
+// Copy URL functionality
+const handleCopyLink = async (): Promise<void> => {
+  if (!shareUrl) {
+    return;
+  }
+
+  try {
+    await navigator.clipboard.writeText(shareUrl);
+    setIsLinkCopied(true);
+  } catch (error) {
+    console.error("Error copying link:", error);
+  }
+};
   // ============================================================
   // UI
   // ============================================================
@@ -682,7 +702,7 @@ const fetchDocuments = async (): Promise<void> => {
           <div className="px-4 mb-4">
 
             <div
-              className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-4 mb-4"
+              className="d-flex flex-column flex-md-row align-items-md-center justify-content-between mt-2 mb-3"
             >
 
               <h4
@@ -860,13 +880,9 @@ return (
 
                                 e.stopPropagation();
 
-                                setSelectedItemId(
-                                  doc.Id
-                                );
-
-                                setShowShareModal(
-                                  true
-                                );
+                                setSelectedItemId(doc.Id);
+                                setIsLinkCopied(false); //new added to reset the copy state when opening the modal
+                                setShowShareModal(true);
 
                               }}
                             >
@@ -1178,30 +1194,58 @@ return (
       <Modal
         show={showShareModal}
         onHide={() => {
-
           setShowShareModal(false);
-
           setSelectedUsers([]);
-
         }}
         centered
       >
 
         <Modal.Header closeButton>
-
           <Modal.Title>
-            Web Stories Title
+            Web Stories Sharing
           </Modal.Title>
-
         </Modal.Header>
 
-
         <Modal.Body>
+           {/* Copy Link URL */}
+    <Form.Group className="mb-3">
+      <Form.Label className={styles.floatingLabelStyle}>
+        Copy Link URL
+      </Form.Label>
 
-          <Form.Group
-            className="mb-3"
-          >
+      <div className="d-flex">
+        <Form.Control
+          type="text"
+          value={shareUrl}
+          readOnly
+          placeholder="Select a Web Story to generate the link"
+        />
 
+     <Button
+          // className={styles.primaryBtn}
+          onClick={handleCopyLink}
+          disabled={!shareUrl}
+          style={{
+            marginLeft: "8px",
+            backgroundColor: isLinkCopied ? "#198754" : "#0d6efd",
+            border: isLinkCopied ? "1px solid #198754" : "1px solid #0d6efd",
+            color: "#ffffff"
+          }}
+        >
+          {isLinkCopied ? (
+            <>
+              <i className="bi bi-check2 me-1" />
+              {/* Copied */}
+            </>
+          ) : (
+            "Copy"
+          )}
+        </Button>
+      </div>
+    </Form.Group>
+
+    {/* Existing Select People section */}
+          <Form.Group  className="mb-3">
             <Form.Label
               className={
                 styles.floatingLabelStyle
@@ -1209,8 +1253,6 @@ return (
             >
               Select People
             </Form.Label>
-
-
             <PeoplePicker
               context={context}
               webAbsoluteUrl={
@@ -1225,9 +1267,7 @@ return (
               resolveDelay={500}
               useSubstrateSearch={false}
               onChange={(items) => {
-
                 console.log(items);
-
                 setSelectedUsers(
                   items
                 );
